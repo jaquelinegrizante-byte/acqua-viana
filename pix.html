@@ -2377,7 +2377,8 @@ if(!ok){
   const nome=(campos["59"]||"ACQUA VIANA");
   area.innerHTML=
     (valor?'<div class="valor">'+valor+'</div>':'')+
-    '<div class="para">para <b>'+nome+'</b></div>'+
+    '<div class="para" style="margin-bottom:4px">para <b>'+nome+'</b></div>'+
+    '<div style="font-size:12px;color:#8FA9B6;margin-bottom:18px">conta empresarial da Acqua Viana — é este nome que o seu banco vai mostrar</div>'+
     '<button class="botao" id="bt">Copiar código PIX</button>'+
     '<div class="passos"><b>1.</b> Toque no botão acima<br><b>2.</b> Abra o aplicativo do seu banco<br><b>3.</b> Escolha <b>Pix &rsaquo; Pix Copia e Cola</b>, cole e confirme'+(valor?' — o valor já vem preenchido':'')+'</div>'+
     '<hr class="divisor">'+

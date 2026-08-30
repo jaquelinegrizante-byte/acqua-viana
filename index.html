@@ -245,6 +245,7 @@ table.rec td:last-child,table.rec th:last-child{text-align:right;font-family:var
       <div><small id="st-l2">Recebido</small><b id="st-pago" style="color:var(--ok)">R$ 0</b></div>
       <div><small id="st-l3">A receber</small><b id="st-aberto" style="color:var(--alerta)">R$ 0</b></div>
     </div>
+    <div id="resumo-itens"></div>
     <div id="lista-recibos"></div>
   </section>
 
@@ -263,6 +264,7 @@ table.rec td:last-child,table.rec th:last-child{text-align:right;font-family:var
           <select id="c-pixtipo"><option value="cnpj">CNPJ</option><option value="cpf">CPF</option><option value="telefone">Telefone</option><option value="email">E-mail</option><option value="aleatoria">Aleatória</option></select></label>
         <label class="campo"><span>Chave PIX</span><input id="c-pix" placeholder="a chave em si"></label>
       </div>
+      <label class="campo"><span>Nome da conta PIX (exatamente como aparece no banco)</span><input id="c-pixnome" placeholder="Ex.: LD Viana Comércio e Manutenção de Piscinas"></label>
       <div class="dupla">
         <label class="campo"><span>Próximo recibo nº</span><input id="c-num" type="number" min="1" step="1"></label>
         <label class="campo"><span>Próximo orçamento nº</span><input id="c-numorc" type="number" min="1" step="1"></label>
@@ -3248,7 +3250,7 @@ function pixPayload(valor){
   const mai=campoPix("00","br.gov.bcb.pix")+campoPix("01",chave);
   let p=campoPix("00","01")+campoPix("26",mai)+campoPix("52","0000")+campoPix("53","986");
   if(valor>0)p+=campoPix("54",valor.toFixed(2));
-  p+=campoPix("58","BR")+campoPix("59",limpaTxt(DB.config.resp||"ACQUA VIANA",25))
+  p+=campoPix("58","BR")+campoPix("59",limpaTxt(DB.config.pixNome||DB.config.resp||"ACQUA VIANA",25))
    +campoPix("60",limpaTxt(DB.config.cidade||"BRASIL",15))
    +campoPix("62",campoPix("05","***"))+"6304";
   return p+crc16(p);
@@ -3415,7 +3417,7 @@ function linkPix(valor){
   if(location.protocol.indexOf("http")!==0)return null;
   const q="v="+(valor>0?valor.toFixed(2):"")
     +"&k="+encodeURIComponent(chave)
-    +"&n="+encodeURIComponent(limpaTxt(DB.config.resp||"ACQUA VIANA",25))
+    +"&n="+encodeURIComponent(limpaTxt(DB.config.pixNome||DB.config.resp||"ACQUA VIANA",25))
     +"&d="+encodeURIComponent(limpaTxt(DB.config.cidade||"BRASIL",15));
   try{return new URL("pix.html",location.href).href+"?"+q;}catch(e){return null;}
 }
@@ -3509,6 +3511,25 @@ function pintaHistorico(){
       <span><span class="nome">${esc(r.cliente.nome)}</span><span class="sub">nº ${rotuloNum(r)} · ${dataBR(r.data)} · ${selo(r)}</span></span>
       <span class="valor">${brl(r.total)}</span></button>`).join("")
     :`<div class="vazio"><b>Nenhum ${orc?"orçamento":"recibo"} neste mês</b>${orc?"Monte a primeira proposta na aba Recibo.":"Recibos aparecem aqui quando o cliente paga."}</div>`;
+  if(orc||!l.length){$("#resumo-itens").innerHTML="";return;}
+  const mapa={};
+  l.forEach(r=>r.linhas.forEach(li=>{
+    const k=(li.tipo||"servico")+"|"+li.nome+"|"+(li.un||"");
+    if(!mapa[k])mapa[k]={tipo:li.tipo||"servico",nome:li.nome,un:li.un||"",qtd:0,val:0};
+    mapa[k].qtd+=li.qtd;mapa[k].val+=li.qtd*li.preco;
+  }));
+  const arr=Object.values(mapa).sort((a,b)=>b.val-a.val);
+  const bloco=(titulo,tipo)=>{
+    const its=arr.filter(x=>x.tipo===tipo);
+    if(!its.length)return"";
+    const tot=its.reduce((s,x)=>s+x.val,0);
+    return `<p class="rotulo">${titulo} do mês · ${brl(tot)}</p><div class="cartao">`+
+      its.map((x,i)=>`<div class="rec-tot"><span>${i===0?"🏆 ":""}${esc(x.nome)} <span style="color:var(--fraca);font-size:12px">· ${x.qtd%1===0?x.qtd:x.qtd.toFixed(1)} ${esc(x.un)}</span></span><span>${brl(x.val)}</span></div>`).join("")+
+      `</div>`;
+  };
+  $("#resumo-itens").innerHTML=
+    bloco("Produtos vendidos","produto")+bloco("Serviços prestados","servico")+
+    `<p style="font-size:11.5px;color:var(--fraca);margin:-2px 0 14px">Somas por item dos recibos do mês, antes de descontos do documento.</p>`;
 }
 
 /* ---------- mensalidades ---------- */
@@ -3549,6 +3570,7 @@ function pintaConfig(){
   $("#c-resp").value=c.resp||"";$("#c-doc").value=mascDoc(c.doc);$("#c-tel").value=mascTel(c.tel);
   $("#c-cidade").value=c.cidade||"";$("#c-pix").value=c.pix||"";$("#c-num").value=c.proximo||1;$("#c-numorc").value=c.proximoOrc||1;
   $("#c-pixtipo").value=c.pixTipo||adivinhaPix(c.pix||"");
+  $("#c-pixnome").value=c.pixNome||"";
 }
 $("#btn-salvar-config").onclick=async()=>{
   const tp=$("#c-pixtipo").value,ch=soNum($("#c-pix").value);
@@ -3557,7 +3579,8 @@ $("#btn-salvar-config").onclick=async()=>{
   const av=avisoDoc($("#c-doc").value,"CPF/CNPJ da empresa");if(av)toast(av);
   Object.assign(DB.config,{resp:$("#c-resp").value.trim(),doc:mascDoc($("#c-doc").value),tel:mascTel($("#c-tel").value),
     cidade:$("#c-cidade").value.trim(),pix:$("#c-pix").value.trim(),proximo:Math.max(1,parseInt($("#c-num").value)||1),
-    proximoOrc:Math.max(1,parseInt($("#c-numorc").value)||1),pixTipo:$("#c-pixtipo").value});
+    proximoOrc:Math.max(1,parseInt($("#c-numorc").value)||1),pixTipo:$("#c-pixtipo").value,
+    pixNome:$("#c-pixnome").value.trim()});
   await salvar();toast("Dados salvos.");
 };
 $("#btn-exportar").onclick=async()=>{
