@@ -2354,7 +2354,18 @@ function lerCampos(p){const m={};let i=0;
   return m;}
 const brl=n=>Number(n).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const area=document.getElementById("conteudo");
-const cod=new URLSearchParams(location.search).get("c");
+const PARAMS=new URLSearchParams(location.search);
+let cod=PARAMS.get("c");
+if(!cod&&PARAMS.get("k")){
+  const campo=(id,v)=>id+String(v.length).padStart(2,"0")+v;
+  const chave=PARAMS.get("k"),v=PARAMS.get("v");
+  const nome=(PARAMS.get("n")||"ACQUA VIANA").slice(0,25),cid=(PARAMS.get("d")||"BRASIL").slice(0,15);
+  const mai=campo("00","br.gov.bcb.pix")+campo("01",chave);
+  let x=campo("00","01")+campo("26",mai)+campo("52","0000")+campo("53","986");
+  if(v&&parseFloat(v)>0)x+=campo("54",parseFloat(v).toFixed(2));
+  x+=campo("58","BR")+campo("59",nome)+campo("60",cid)+campo("62",campo("05","***"))+"6304";
+  cod=x+crc16(x);
+}
 let ok=false,campos={};
 if(cod&&cod.length>30&&cod.slice(-8,-4)==="6304"&&crc16(cod.slice(0,-4))===cod.slice(-4)){
   campos=lerCampos(cod);ok=true;
