@@ -2959,6 +2959,18 @@ function totalRascunho(){
   const sub=rascunho.linhas.reduce((s,l)=>s+l.qtd*l.preco,0);
   return Math.max(0,sub-num($("#f-desc").value));
 }
+let tRasc=null;
+function salvarRascunho(){
+  clearTimeout(tRasc);
+  tRasc=setTimeout(async()=>{
+    if(!rascunho)return;
+    rascunho.desconto=num($("#f-desc").value);rascunho.pag=$("#f-pag").value;
+    rascunho.obs=$("#f-obs").value;rascunho.ref=$("#f-ref").value;
+    rascunho.pago=$("#f-pago").checked;rascunho.validade=parseInt($("#f-val").value)||15;
+    DB.rascunho=JSON.parse(JSON.stringify(rascunho));
+    await salvar();
+  },400);
+}
 function pintaRascunho(){
   const c=DB.clientes.find(x=>x.id===rascunho.clienteId);
   const b=$("#btn-escolher-cliente");
@@ -2971,9 +2983,12 @@ function pintaRascunho(){
       <button class="fechar" onclick="tiraLinha(${n})" aria-label="Remover">✕</button></div>`).join("")
     :`<div class="vazio"><b>Recibo vazio</b>Adicione os serviços e produtos desta visita.</div>`;
   $("#f-total").textContent=brl(totalRascunho());
+  salvarRascunho();
 }
 window.tiraLinha=n=>{rascunho.linhas.splice(n,1);pintaRascunho();};
-$("#f-desc").oninput=()=>$("#f-total").textContent=brl(totalRascunho());
+$("#f-desc").oninput=()=>{$("#f-total").textContent=brl(totalRascunho());salvarRascunho();};
+["#f-ref","#f-obs","#f-val"].forEach(s=>$(s).addEventListener("input",salvarRascunho));
+["#f-pag","#f-pago"].forEach(s=>$(s).addEventListener("change",salvarRascunho));
 $("#btn-limpar").onclick=()=>{if(confirm("Limpar o documento em preparo?"))novoRascunho(rascunho.tipo);};
 
 /* escolher cliente */
@@ -3728,7 +3743,16 @@ function pintaModo(){
     $("#aviso-armazenamento").innerHTML=`<div class="aviso">Este navegador não deixa guardar dados, então nada fica salvo ao fechar. Abra o app pelo endereço da internet ou use <b>Ajustes → Baixar backup</b> antes de sair.</div>`;
   }
   if(DB.config.assinatura)IMG_ASS.src=DB.config.assinatura;
-  novoRascunho();pintaClientes();pintaItens();pintaHistorico();pintaConfig();atualizaMensalidadesResumo();
+  const emAndamento=DB.rascunho;
+  novoRascunho();
+  if(emAndamento&&(emAndamento.clienteId||(emAndamento.linhas&&emAndamento.linhas.length))){
+    rascunho=emAndamento;
+    $("#f-ref").value=rascunho.ref||"";$("#f-desc").value=rascunho.desconto||0;
+    $("#f-pag").value=rascunho.pag||"PIX";$("#f-obs").value=rascunho.obs||"";
+    $("#f-pago").checked=rascunho.pago!==false;$("#f-val").value=rascunho.validade||15;
+    setDoc(rascunho.tipo||"orcamento");pintaRascunho();
+    setTimeout(()=>toast("Recuperei o documento que você estava montando."),600);
+  }pintaClientes();pintaItens();pintaHistorico();pintaConfig();atualizaMensalidadesResumo();
   pintaAlertas();pintaModo();
   if(!DB.config.resp){document.querySelector(".nav").style.display="none";ir("v-inicio");}
 })();
