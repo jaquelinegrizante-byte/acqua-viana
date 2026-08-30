@@ -95,7 +95,7 @@ textarea{min-height:70px;resize:vertical}
 .nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
 /* ---------- folhas (sheets) ---------- */
-.folha{position:fixed;inset:0;background:rgba(10,37,49,.42);z-index:60;display:none;align-items:flex-end;backdrop-filter:blur(2px)}
+.folha{position:fixed;inset:0;background:rgba(10,37,49,.48);z-index:60;display:none;align-items:flex-end}
 .folha.aberta{display:flex}
 .folha>div{background:var(--agua);width:100%;max-height:92vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(26px + env(safe-area-inset-bottom));max-width:680px;margin:0 auto;animation:sobeF .25s ease}
 @keyframes sobeF{from{transform:translateY(24px)}to{transform:none}}
@@ -161,6 +161,21 @@ table.rec td:last-child,table.rec th:last-child{text-align:right;font-family:var
 </header>
 
 <main>
+  <!-- ============ BEM-VINDO ============ -->
+  <section class="tela" id="v-inicio">
+    <p style="margin:2px 0 14px;font-size:14px;color:var(--fraca)">Três informações e o app está pronto para o primeiro orçamento. Elas aparecem impressas nos documentos.</p>
+    <div class="cartao">
+      <label class="campo"><span>Seu nome (assina os documentos) *</span><input id="in-resp" placeholder="Ex.: Carlos Viana"></label>
+      <label class="campo"><span>WhatsApp de contato</span><input id="in-tel" inputmode="tel" placeholder="(00) 00000-0000"></label>
+      <div class="dupla">
+        <label class="campo"><span>Cidade</span><input id="in-cidade" placeholder="Cidade / UF"></label>
+        <label class="campo"><span>Chave PIX</span><input id="in-pix" placeholder="telefone ou CPF"></label>
+      </div>
+      <button class="btn" id="btn-comecar">Começar a usar</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--fraca);text-align:center;margin:8px 0 0">Próximo passo: definir seus preços no Catálogo.</p>
+  </section>
+
   <!-- ============ RECIBO ============ -->
   <section class="tela ativa" id="v-recibo">
     <div id="aviso-armazenamento"></div>
@@ -242,9 +257,11 @@ table.rec td:last-child,table.rec th:last-child{text-align:right;font-family:var
         <label class="campo"><span>CPF / CNPJ</span><input id="c-doc" placeholder="000.000.000-00"></label>
         <label class="campo"><span>Telefone</span><input id="c-tel" inputmode="tel" placeholder="(00) 00000-0000"></label>
       </div>
+      <label class="campo"><span>Cidade</span><input id="c-cidade" placeholder="Cidade / UF"></label>
       <div class="dupla">
-        <label class="campo"><span>Cidade</span><input id="c-cidade" placeholder="Cidade / UF"></label>
-        <label class="campo"><span>Chave PIX</span><input id="c-pix" placeholder="telefone, CPF ou e-mail"></label>
+        <label class="campo"><span>Tipo da chave PIX</span>
+          <select id="c-pixtipo"><option value="cnpj">CNPJ</option><option value="cpf">CPF</option><option value="telefone">Telefone</option><option value="email">E-mail</option><option value="aleatoria">Aleatória</option></select></label>
+        <label class="campo"><span>Chave PIX</span><input id="c-pix" placeholder="a chave em si"></label>
       </div>
       <div class="dupla">
         <label class="campo"><span>Próximo recibo nº</span><input id="c-num" type="number" min="1" step="1"></label>
@@ -345,21 +362,6 @@ table.rec td:last-child,table.rec th:last-child{text-align:right;font-family:var
   <button class="btn" id="btn-emitir-mens" style="margin-top:12px">Emitir recibos marcados</button>
 </div></div>
 
-<div class="folha" id="fo-inicio"><div><div class="puxador"></div>
-  <div class="cabeca"><h2>Bem-vindo</h2></div>
-  <p style="margin:0 0 14px;font-size:14px;color:var(--fraca)">Três informações e o app está pronto para o primeiro orçamento. Elas aparecem impressas nos documentos.</p>
-  <div class="cartao">
-    <label class="campo"><span>Seu nome (assina os documentos) *</span><input id="in-resp" placeholder="Ex.: Carlos Viana"></label>
-    <label class="campo"><span>WhatsApp de contato</span><input id="in-tel" inputmode="tel" placeholder="(00) 00000-0000"></label>
-    <div class="dupla">
-      <label class="campo"><span>Cidade</span><input id="in-cidade" placeholder="Cidade / UF"></label>
-      <label class="campo"><span>Chave PIX</span><input id="in-pix" placeholder="telefone ou CPF"></label>
-    </div>
-    <button class="btn" id="btn-comecar">Começar a usar</button>
-  </div>
-  <p style="font-size:12.5px;color:var(--fraca);text-align:center;margin:6px 0 0">Próximo passo: definir seus preços no Catálogo.</p>
-</div></div>
-
 <div class="folha" id="fo-precos"><div><div class="puxador"></div>
   <div class="cabeca"><h2>Definir preços</h2><button class="fechar" data-fecha>✕</button></div>
   <p style="margin:0 0 12px;font-size:13.5px;color:var(--fraca)">Preencha o que você cobra hoje. O que você não usa pode ficar em branco e ser apagado depois no Catálogo.</p>
@@ -384,6 +386,7 @@ table.rec td:last-child,table.rec th:last-child{text-align:right;font-family:var
   <div id="papel"></div>
   <div class="serrilha"></div>
   <div class="linha-btn" style="margin-top:14px"><button class="btn zap" id="btn-zap">Enviar no WhatsApp</button></div>
+  <div class="linha-btn" id="linha-pix" style="display:none"><button class="btn" id="btn-pix-zap" style="flex:2;background:var(--turquesa)">Enviar código PIX (valor já preenchido)</button><button class="btn sec" id="btn-pix-copiar" style="flex:1">Copiar</button></div>
   <div class="linha-btn"><button class="btn sec" id="btn-pdf" style="flex:1">Salvar PDF</button><button class="btn sec" id="btn-img" style="flex:1">Salvar imagem</button></div>
   <div class="linha-btn"><button class="btn sec" id="btn-copiar" style="flex:1">Copiar texto</button></div>
   <div class="linha-btn" id="acoes-recibo"></div>
@@ -495,6 +498,7 @@ async function salvar(){
 
 /* ---------- navegação ---------- */
 const TITULOS={
+ "v-inicio":["Bem-vindo","Um minuto de configuração e o app está pronto."],
  "v-recibo":["Novo orçamento","Monte a proposta, envie e aguarde o aceite do cliente."],
  "v-clientes":["Clientes","Quem você atende, onde fica a piscina e quanto paga por mês."],
  "v-itens":["Catálogo","Serviços e produtos com preço definido — lançar recibo vira questão de toques."],
@@ -518,6 +522,10 @@ $$(".nav button").forEach(b=>b.onclick=()=>ir(b.dataset.tela));
 function abre(f){const e=$(f);e.classList.add("aberta");if(e.firstElementChild)e.firstElementChild.scrollTop=0;}
 function fecha(f){$(f).classList.remove("aberta");}
 $$("[data-fecha]").forEach(b=>b.onclick=()=>b.closest(".folha").classList.remove("aberta"));
+document.addEventListener("focusin",e=>{
+  if(e.target&&e.target.closest&&e.target.closest(".folha"))
+    setTimeout(()=>{try{e.target.scrollIntoView({block:"center"});}catch(err){}},300);
+});
 $$(".folha").forEach(f=>f.onclick=e=>{if(e.target===f)f.classList.remove("aberta");});
 
 /* ---------- clientes ---------- */
@@ -795,6 +803,7 @@ function mostraDoc(rid){
       <button class="btn sec mini" style="flex:1" onclick="duplicaDoc('${rid}')">Repetir</button>
       <button class="btn perigo mini" onclick="excluiDoc('${rid}')">Excluir</button>`;
   }
+  $("#linha-pix").style.display=(pixPayload(r.total)&&(orc||!r.pago))?"flex":"none";
   abre("#fo-recibo");
 }
 window.mostraDoc=mostraDoc;
@@ -837,12 +846,59 @@ $("#btn-zap").onclick=()=>{
   const t=textoZap(reciboAberto),n=zapNumero(reciboAberto.cliente.tel);
   window.open("https://wa.me/"+n+"?text="+encodeURIComponent(t),"_blank");
 };
+$("#btn-pix-zap").onclick=()=>{
+  const p=pixPayload(reciboAberto.total);
+  if(!p){toast("Confira a chave PIX em Ajustes.");return;}
+  window.open("https://wa.me/"+zapNumero(reciboAberto.cliente.tel)+"?text="+encodeURIComponent(p),"_blank");
+};
+$("#btn-pix-copiar").onclick=async()=>{
+  const p=pixPayload(reciboAberto.total);
+  if(!p){toast("Confira a chave PIX em Ajustes.");return;}
+  try{await navigator.clipboard.writeText(p);toast("Código PIX copiado — valor de "+brl(reciboAberto.total)+" incluído.");}
+  catch(e){prompt("Código PIX copia e cola:",p);}
+};
 $("#btn-copiar").onclick=async()=>{
   const t=textoZap(reciboAberto);
   try{await navigator.clipboard.writeText(t);toast("Texto copiado.");}
   catch(e){prompt("Copie o texto do recibo:",t);}
 };
 
+
+/* ---------- PIX copia e cola ---------- */
+function limpaTxt(t,max){return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+  .replace(/[^A-Za-z0-9 ]/g," ").replace(/\s+/g," ").trim().toUpperCase().slice(0,max)||"NAO INFORMADO";}
+function chavePixNorm(){
+  const c=DB.config,v=String(c.pix||"").trim();if(!v)return null;
+  const t=c.pixTipo||adivinhaPix(v),d=soNum(v);
+  if(t==="cnpj")return d.length===14?d:null;
+  if(t==="cpf")return d.length===11?d:null;
+  if(t==="telefone"){if(d.length===10||d.length===11)return "+55"+d;if(d.length===12||d.length===13)return "+"+d;return null;}
+  if(t==="email")return v.toLowerCase();
+  return v;
+}
+function adivinhaPix(v){
+  if(v.indexOf("@")>-1)return "email";
+  const d=soNum(v);
+  if(d.length===14)return "cnpj";
+  if(d.length===11)return "cpf";
+  if(d.length===10||d.length===12||d.length===13)return "telefone";
+  return "aleatoria";
+}
+function crc16(s){let c=0xFFFF;
+  for(let i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;
+    for(let j=0;j<8;j++){c=(c&0x8000)?((c<<1)^0x1021):(c<<1);c&=0xFFFF;}}
+  return c.toString(16).toUpperCase().padStart(4,"0");}
+function campoPix(id,v){return id+String(v.length).padStart(2,"0")+v;}
+function pixPayload(valor){
+  const chave=chavePixNorm();if(!chave)return null;
+  const mai=campoPix("00","br.gov.bcb.pix")+campoPix("01",chave);
+  let p=campoPix("00","01")+campoPix("26",mai)+campoPix("52","0000")+campoPix("53","986");
+  if(valor>0)p+=campoPix("54",valor.toFixed(2));
+  p+=campoPix("58","BR")+campoPix("59",limpaTxt(DB.config.resp||"ACQUA VIANA",25))
+   +campoPix("60",limpaTxt(DB.config.cidade||"BRASIL",15))
+   +campoPix("62",campoPix("05","***"))+"6304";
+  return p+crc16(p);
+}
 
 /* ---------- imagem e PDF do documento ---------- */
 const IMG_LOGO=new Image();IMG_LOGO.src=LOGO;
@@ -869,7 +925,7 @@ function desenhaDoc(x,r,W){
     x.bezierCurveTo(W*.74,y+off-6,W*.88,y+off-2,W,y+off+2);
     x.lineTo(W,y+34);x.lineTo(0,y+34);x.closePath();x.fill();x.globalAlpha=1;};
   onda("#8AD7F5",0,.55);onda("#22BFA5",8,.85);
-  y+=54;
+  y+=88;
   x.fillStyle="#0A2531";D(42,"900");x.fillText(orc?"ORÇAMENTO":"RECIBO",P,y);
   F(17);x.fillStyle="#5D7C8B";dir("Nº "+rotuloNum(r)+" · "+dataBR(r.data),W-P,y-4);
   y+=12;x.fillStyle="#0A2531";x.fillRect(P,y,MAX,2.5);y+=28;
@@ -1090,11 +1146,12 @@ function pintaConfig(){
   const c=DB.config;
   $("#c-resp").value=c.resp||"";$("#c-doc").value=mascDoc(c.doc);$("#c-tel").value=mascTel(c.tel);
   $("#c-cidade").value=c.cidade||"";$("#c-pix").value=c.pix||"";$("#c-num").value=c.proximo||1;$("#c-numorc").value=c.proximoOrc||1;
+  $("#c-pixtipo").value=c.pixTipo||adivinhaPix(c.pix||"");
 }
 $("#btn-salvar-config").onclick=async()=>{
   Object.assign(DB.config,{resp:$("#c-resp").value.trim(),doc:mascDoc($("#c-doc").value),tel:mascTel($("#c-tel").value),
     cidade:$("#c-cidade").value.trim(),pix:$("#c-pix").value.trim(),proximo:Math.max(1,parseInt($("#c-num").value)||1),
-    proximoOrc:Math.max(1,parseInt($("#c-numorc").value)||1)});
+    proximoOrc:Math.max(1,parseInt($("#c-numorc").value)||1),pixTipo:$("#c-pixtipo").value});
   await salvar();toast("Dados salvos.");
 };
 $("#btn-exportar").onclick=async()=>{
@@ -1170,7 +1227,7 @@ $("#btn-comecar").onclick=async()=>{
   const r=$("#in-resp").value.trim();
   if(!r){toast("Escreva o nome de quem assina.");return;}
   Object.assign(DB.config,{resp:r,tel:mascTel($("#in-tel").value),cidade:$("#in-cidade").value.trim(),pix:$("#in-pix").value.trim()});
-  await salvar();fecha("#fo-inicio");pintaConfig();ir("v-itens");toast("Pronto. Agora defina seus preços.");
+  await salvar();document.querySelector(".nav").style.display="";pintaConfig();ir("v-itens");toast("Pronto. Agora defina seus preços.");
 };
 function pintaDiag(){
   const ini=DB.config.criadoEm||hoje(),dia=diasDe(ini)+1;
@@ -1223,7 +1280,7 @@ function pintaModo(){
   }
   novoRascunho();pintaClientes();pintaItens();pintaHistorico();pintaConfig();atualizaMensalidadesResumo();
   pintaAlertas();pintaModo();
-  if(!DB.config.resp)abre("#fo-inicio");
+  if(!DB.config.resp){document.querySelector(".nav").style.display="none";ir("v-inicio");}
 })();
 </script>
 </body>
