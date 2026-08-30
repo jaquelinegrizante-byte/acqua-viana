@@ -1,0 +1,37 @@
+ACQUA VIANA — Orçamentos e Recibos
+==================================
+
+PRIMEIRO USO (5 minutos)
+  1. Abra o app: ele pede seu nome, WhatsApp, cidade e chave PIX.
+  2. Ele leva você direto ao Catálogo: toque no aviso laranja
+     "itens sem preço" e preencha o que você cobra hoje.
+  3. Cadastre 3 clientes. Se o cliente paga manutenção fixa,
+     preencha "Plano mensal" — isso adianta o recibo todo mês.
+  4. Faça o primeiro orçamento e envie no WhatsApp.
+
+O CAMINHO DE TODO DIA
+  Orçamento -> cliente aprova -> cliente paga ->
+  abrir o orçamento -> "Cliente pagou, gerar recibo" -> enviar.
+  Nunca digite o mesmo serviço duas vezes.
+
+INSTALAR NO CELULAR (Android)
+  1. Abra o endereço do app no Chrome
+  2. Menu (3 pontinhos) > "Instalar aplicativo"
+  3. O ícone fica na tela inicial e funciona sem internet
+
+PARA COLOCAR NO AR (uma vez só, no computador)
+  1. Conta gratuita em github.com
+  2. New repository > nome: acqua-viana > Public > Create
+  3. "uploading an existing file" > arraste os 6 arquivos soltos
+     desta pasta > Commit changes
+  4. Settings > Pages > Branch: main > pasta / (root) > Save
+  5. Em 2 minutos aparece o endereço https://SEUUSUARIO.github.io/acqua-viana/
+
+REGRA DE OURO
+  Todo domingo: Ajustes > Baixar backup, e mande o arquivo .json
+  para outro celular. O app avisa quando passar de 7 dias.
+
+TESTE DE 30 DIAS
+  Em Ajustes, no fim da tela, existe o painel "Teste de 30 dias".
+  Toque em "Copiar relatório" e mande no domingo. São os números
+  que dizem se a ferramenta funciona de verdade.
