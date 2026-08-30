@@ -386,7 +386,7 @@ table.rec td:last-child,table.rec th:last-child{text-align:right;font-family:var
   <div id="papel"></div>
   <div class="serrilha"></div>
   <div class="linha-btn" style="margin-top:14px"><button class="btn zap" id="btn-zap">Enviar no WhatsApp</button></div>
-  <div class="linha-btn" id="linha-pix" style="display:none"><button class="btn" id="btn-pix-zap" style="flex:2;background:var(--turquesa)">Enviar código PIX (valor já preenchido)</button><button class="btn sec" id="btn-pix-copiar" style="flex:1">Copiar</button></div>
+  <div class="linha-btn" id="linha-pix" style="display:none"><button class="btn" id="btn-pix-zap" style="flex:2;background:var(--turquesa)">Enviar link de pagamento PIX</button><button class="btn sec" id="btn-pix-copiar" style="flex:1">Copiar</button></div>
   <div class="linha-btn"><button class="btn sec" id="btn-pdf" style="flex:1">Salvar PDF</button><button class="btn sec" id="btn-img" style="flex:1">Salvar imagem</button></div>
   <div class="linha-btn"><button class="btn sec" id="btn-copiar" style="flex:1">Copiar texto</button></div>
   <div class="linha-btn" id="acoes-recibo"></div>
@@ -3073,7 +3073,11 @@ function textoZap(r){
   L.push("––––––––––––––––––––");
   L.push("*TOTAL: "+brl(r.total)+"*");
   L.push((orc?"Condições: ":"Pagamento: ")+r.pag+(orc?"":(r.pago?" ✅ pago":" ⏳ em aberto")));
-  if(DB.config.pix&&(orc||!r.pago))L.push("PIX: "+DB.config.pix);
+  if(orc||!r.pago){
+    const lp=linkPix(r.total);
+    if(lp){L.push("Pagar com PIX em 1 toque (valor já preenchido):");L.push(lp);}
+    else if(DB.config.pix)L.push("PIX: "+DB.config.pix);
+  }
   if(r.obs)L.push("Obs.: "+r.obs);
   L.push("");
   L.push(orc?"Se estiver de acordo, é só responder esta mensagem que já agendamos. 💧":"Obrigado pela confiança! 💧");
@@ -3149,7 +3153,9 @@ $("#btn-zap").onclick=()=>{
 $("#btn-pix-zap").onclick=()=>{
   const p=pixPayload(reciboAberto.total);
   if(!p){toast("Confira a chave PIX em Ajustes.");return;}
-  window.open("https://wa.me/"+zapNumero(reciboAberto.cliente.tel)+"?text="+encodeURIComponent(p),"_blank");
+  const lp=linkPix(reciboAberto.total);
+  const t=lp?("Para pagar "+brl(reciboAberto.total)+" com PIX em 1 toque, use o link abaixo — o valor já vem preenchido:\n"+lp):p;
+  window.open("https://wa.me/"+zapNumero(reciboAberto.cliente.tel)+"?text="+encodeURIComponent(t),"_blank");
 };
 $("#btn-pix-copiar").onclick=async()=>{
   const p=pixPayload(reciboAberto.total);
@@ -3287,7 +3293,7 @@ function desenhaDoc(x,r,W){
       F(14);x.fillStyle="#5D7C8B";let yy=y+70;
       fatia(x,"Aponte a câmera do aplicativo do seu banco para o código ao lado. O valor de "+brl(r.total)+" já vem preenchido.",larg).forEach(t=>{x.fillText(t,tx0,yy);yy+=19;});
       yy+=6;
-      fatia(x,"Recebeu como imagem? No app do banco, toque em Pix e use \"ler QR code da galeria\".",larg).forEach(t=>{x.fillText(t,tx0,yy);yy+=19;});
+      fatia(x,"No mesmo celular? Toque no link de pagamento enviado no WhatsApp — um botão copia o código pronto.",larg).forEach(t=>{x.fillText(t,tx0,yy);yy+=19;});
       y+=box+8;
     }catch(e){}}
   }
@@ -3347,6 +3353,12 @@ async function imagemPDF(cv){
     return{bin:bin2str(buf),filtro:"/FlateDecode"};
   }
   throw new Error("sem-imagem");
+}
+function linkPix(valor){
+  const p=pixPayload(valor);
+  if(!p)return null;
+  if(location.protocol.indexOf("http")!==0)return null;
+  try{return new URL("pix.html",location.href).href+"?c="+encodeURIComponent(p);}catch(e){return null;}
 }
 function escPdf(s){return String(s).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)");}
 async function pdfDeCanvas(cv,pixTxt){
