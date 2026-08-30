@@ -267,13 +267,6 @@ table.rec td:last-child,table.rec th:last-child{text-align:right;font-family:var
         <label class="campo"><span>Próximo recibo nº</span><input id="c-num" type="number" min="1" step="1"></label>
         <label class="campo"><span>Próximo orçamento nº</span><input id="c-numorc" type="number" min="1" step="1"></label>
       </div>
-      <label class="campo"><span>Assinatura de punho (sai impressa nos documentos)</span>
-        <div id="prev-ass" style="min-height:30px;margin:2px 0 8px;color:var(--fraca);font-size:13px"></div>
-        <div class="linha-btn" style="margin-top:0">
-          <button class="btn sec mini" id="btn-ass-abrir" type="button">Desenhar assinatura</button>
-          <button class="btn perigo mini" id="btn-ass-remover" type="button" style="display:none">Remover</button>
-        </div>
-      </label>
       <button class="btn" id="btn-salvar-config">Salvar dados</button>
     </div>
 
@@ -376,16 +369,6 @@ table.rec td:last-child,table.rec th:last-child{text-align:right;font-family:var
   <button class="btn" id="btn-salvar-precos">Salvar preços</button>
 </div></div>
 
-<div class="folha" id="fo-ass"><div><div class="puxador"></div>
-  <div class="cabeca"><h2>Desenhar assinatura</h2><button class="fechar" data-fecha>✕</button></div>
-  <p style="margin:0 0 12px;font-size:13.5px;color:var(--fraca)">Assine com o dedo, com calma, apoiando na linha tracejada. Pode limpar e repetir quantas vezes quiser.</p>
-  <div id="pad-caixa" style="background:#fff;border:1.5px solid var(--linha);border-radius:14px;position:relative;touch-action:none;overflow:hidden">
-    <canvas id="pad" style="display:block;touch-action:none"></canvas>
-    <div style="position:absolute;left:22px;right:22px;bottom:48px;border-bottom:1.5px dashed #C9E0EA;pointer-events:none"></div>
-  </div>
-  <div class="linha-btn"><button class="btn sec" id="btn-ass-limpar" style="flex:1">Limpar</button><button class="btn" id="btn-ass-salvar" style="flex:1">Salvar assinatura</button></div>
-</div></div>
-
 <div class="folha" id="fo-pgto"><div><div class="puxador"></div>
   <div class="cabeca"><h2>Registrar pagamento</h2><button class="fechar" data-fecha>✕</button></div>
   <p style="margin:0 0 12px;font-size:13.5px;color:var(--fraca)">O orçamento passa a constar como aprovado e um recibo quitado é emitido com os mesmos itens e numeração própria.</p>
@@ -403,7 +386,7 @@ table.rec td:last-child,table.rec th:last-child{text-align:right;font-family:var
   <div id="papel"></div>
   <div class="serrilha"></div>
   <div class="linha-btn" style="margin-top:14px"><button class="btn zap" id="btn-zap">Enviar no WhatsApp</button></div>
-  <div class="linha-btn" id="linha-pix" style="display:none"><button class="btn" id="btn-pix-zap" style="flex:2;background:var(--turquesa)">Enviar link de pagamento PIX</button><button class="btn sec" id="btn-pix-copiar" style="flex:1">Copiar</button></div>
+  <div class="linha-btn" id="linha-pix" style="display:none"><button class="btn" id="btn-pix-zap" style="flex:2;background:var(--turquesa)">Enviar código PIX (valor já preenchido)</button><button class="btn sec" id="btn-pix-copiar" style="flex:1">Copiar</button></div>
   <div class="linha-btn"><button class="btn sec" id="btn-pdf" style="flex:1">Salvar PDF</button><button class="btn sec" id="btn-img" style="flex:1">Salvar imagem</button></div>
   <div class="linha-btn"><button class="btn sec" id="btn-copiar" style="flex:1">Copiar texto</button></div>
   <div class="linha-btn" id="acoes-recibo"></div>
@@ -2752,17 +2735,6 @@ function mascDoc(v){const d=soNum(v).slice(0,14);
     if(d.length>3)return d.slice(0,3)+"."+d.slice(3);
     return d;}
   return d.slice(0,2)+"."+d.slice(2,5)+"."+d.slice(5,8)+"/"+d.slice(8,12)+(d.length>12?"-"+d.slice(12):"");}
-function validaCPF(d){if(d.length!==11||/^(\d)\1+$/.test(d))return false;
-  let s=0;for(let i=0;i<9;i++)s+=(+d[i])*(10-i);let r=(s*10)%11;if(r===10)r=0;if(r!==+d[9])return false;
-  s=0;for(let i=0;i<10;i++)s+=(+d[i])*(11-i);r=(s*10)%11;if(r===10)r=0;return r===+d[10];}
-function validaCNPJ(d){if(d.length!==14||/^(\d)\1+$/.test(d))return false;
-  const calc=n=>{const p=n===12?[5,4,3,2,9,8,7,6,5,4,3,2]:[6,5,4,3,2,9,8,7,6,5,4,3,2];
-    let s=0;for(let i=0;i<n;i++)s+=(+d[i])*p[i];const r=s%11;return r<2?0:11-r;};
-  return calc(12)===+d[12]&&calc(13)===+d[13];}
-function avisoDoc(v,rotulo){const d=soNum(v);
-  if(d.length===11&&!validaCPF(d))return rotulo+": este CPF parece digitado errado (dígito verificador não confere).";
-  if(d.length===14&&!validaCNPJ(d))return rotulo+": este CNPJ parece digitado errado (dígito verificador não confere).";
-  return null;}
 function mascara(sel,fn){const e=$(sel);if(!e)return;
   e.setAttribute("inputmode","numeric");
   e.addEventListener("input",()=>{const fim=e.selectionStart>=e.value.length;const v=fn(e.value);
@@ -2847,8 +2819,7 @@ function ir(tela){
 $$(".nav button").forEach(b=>b.onclick=()=>ir(b.dataset.tela));
 ["#cl-tel","#c-tel","#in-tel"].forEach(s=>mascara(s,mascTel));
 ["#cl-doc","#c-doc"].forEach(s=>mascara(s,mascDoc));
-let zFolha=60;
-function abre(f){const e=$(f);e.style.zIndex=++zFolha;e.classList.add("aberta");if(e.firstElementChild)e.firstElementChild.scrollTop=0;}
+function abre(f){const e=$(f);e.classList.add("aberta");if(e.firstElementChild)e.firstElementChild.scrollTop=0;}
 function fecha(f){$(f).classList.remove("aberta");}
 $$("[data-fecha]").forEach(b=>b.onclick=()=>b.closest(".folha").classList.remove("aberta"));
 document.addEventListener("focusin",e=>{
@@ -2888,9 +2859,7 @@ $("#btn-salvar-cliente").onclick=async()=>{
   const dados={nome,tel:mascTel($("#cl-tel").value),doc:mascDoc($("#cl-doc").value),end:$("#cl-end").value.trim(),
     bairro:$("#cl-bairro").value.trim(),cidade:$("#cl-cidade").value.trim(),mensalidade:num($("#cl-mens").value),obs:$("#cl-obs").value.trim()};
   if(edCliente)Object.assign(edCliente,dados);else DB.clientes.push({id:id(),...dados});
-  await salvar();fecha("#fo-cliente");pintaClientes();atualizaMensalidadesResumo();
-  const av=avisoDoc(dados.doc,"Atenção — documento do cliente");
-  toast(av?("Cliente salvo. "+av):"Cliente salvo.");
+  await salvar();fecha("#fo-cliente");pintaClientes();atualizaMensalidadesResumo();toast("Cliente salvo.");
 };
 window.excluiCliente=async function(cid){
   if(!confirm("Excluir este cliente? Os recibos já emitidos continuam no histórico."))return;
@@ -3085,7 +3054,6 @@ function montaPapel(r){
     ${orc&&cfg.pix?`<div class="rec-tot" style="color:var(--fraca)"><span>PIX</span><span style="font-family:var(--ui)">${esc(cfg.pix)}</span></div>`:""}
     ${r.obs?`<p style="font-size:12.5px;color:var(--fraca);margin:10px 0 0;border-left:3px solid var(--linha);padding-left:9px">${esc(r.obs)}</p>`:""}
     ${orc?`<p style="font-size:12px;color:var(--fraca);margin:12px 0 0">Para aprovar, basta responder esta proposta pelo WhatsApp. Os valores podem ser revistos após a data de validade.</p>`:""}
-    ${cfg.assinatura?`<img src="${cfg.assinatura}" alt="" style="display:block;margin:18px auto -14px;max-height:52px;max-width:58%">`:""}
     <div class="assinatura">${esc(cfg.resp||"Acqua Viana")}${cfg.doc?" · "+esc(cfg.doc):""}</div>
     <div class="rec-pe">${esc([cfg.cidade,dataBR(r.data)].filter(Boolean).join(", "))}
       ${cfg.tel?`<br>Acqua Viana · ${esc(cfg.tel)}`:""}${!orc&&cfg.pix?` · PIX ${esc(cfg.pix)}`:""}
@@ -3105,11 +3073,7 @@ function textoZap(r){
   L.push("––––––––––––––––––––");
   L.push("*TOTAL: "+brl(r.total)+"*");
   L.push((orc?"Condições: ":"Pagamento: ")+r.pag+(orc?"":(r.pago?" ✅ pago":" ⏳ em aberto")));
-  if(orc||!r.pago){
-    const lp=linkPix(r.total);
-    if(lp){L.push("Pagar com PIX em 1 toque (valor já preenchido):");L.push(lp);}
-    else if(DB.config.pix)L.push("PIX: "+DB.config.pix);
-  }
+  if(DB.config.pix&&(orc||!r.pago))L.push("PIX: "+DB.config.pix);
   if(r.obs)L.push("Obs.: "+r.obs);
   L.push("");
   L.push(orc?"Se estiver de acordo, é só responder esta mensagem que já agendamos. 💧":"Obrigado pela confiança! 💧");
@@ -3151,7 +3115,6 @@ window.setSituacao=async function(rid,s){
   toast(s==="aprovado"?"Orçamento aprovado.":s==="recusado"?"Orçamento marcado como recusado.":"Orçamento voltou para enviado.");
 };
 window.abrePgto=function(rid){
-  fecha("#fo-recibo");
   orcConv=rid;const r=DB.recibos.find(x=>x.id===rid);
   $("#pg-forma").value=["PIX","Dinheiro","Cartão de débito","Cartão de crédito","Transferência","Boleto"].includes(r.pag)?r.pag:"PIX";
   $("#pg-data").value=hoje();abre("#fo-pgto");
@@ -3186,9 +3149,7 @@ $("#btn-zap").onclick=()=>{
 $("#btn-pix-zap").onclick=()=>{
   const p=pixPayload(reciboAberto.total);
   if(!p){toast("Confira a chave PIX em Ajustes.");return;}
-  const lp=linkPix(reciboAberto.total);
-  const t=lp?("Para pagar "+brl(reciboAberto.total)+" com PIX em 1 toque, use o link abaixo — o valor já vem preenchido:\n"+lp):p;
-  window.open("https://wa.me/"+zapNumero(reciboAberto.cliente.tel)+"?text="+encodeURIComponent(t),"_blank");
+  window.open("https://wa.me/"+zapNumero(reciboAberto.cliente.tel)+"?text="+encodeURIComponent(p),"_blank");
 };
 $("#btn-pix-copiar").onclick=async()=>{
   const p=pixPayload(reciboAberto.total);
@@ -3219,7 +3180,7 @@ function adivinhaPix(v){
   if(v.indexOf("@")>-1)return "email";
   const d=soNum(v);
   if(d.length===14)return "cnpj";
-  if(d.length===11)return validaCPF(d)?"cpf":"telefone";
+  if(d.length===11)return "cpf";
   if(d.length===10||d.length===12||d.length===13)return "telefone";
   return "aleatoria";
 }
@@ -3326,18 +3287,11 @@ function desenhaDoc(x,r,W){
       F(14);x.fillStyle="#5D7C8B";let yy=y+70;
       fatia(x,"Aponte a câmera do aplicativo do seu banco para o código ao lado. O valor de "+brl(r.total)+" já vem preenchido.",larg).forEach(t=>{x.fillText(t,tx0,yy);yy+=19;});
       yy+=6;
-      fatia(x,"No mesmo celular? Toque no link de pagamento enviado no WhatsApp — um botão copia o código pronto.",larg).forEach(t=>{x.fillText(t,tx0,yy);yy+=19;});
+      fatia(x,"Recebeu como imagem? No app do banco, toque em Pix e use \"ler QR code da galeria\".",larg).forEach(t=>{x.fillText(t,tx0,yy);yy+=19;});
       y+=box+8;
     }catch(e){}}
   }
-  const temAss=IMG_ASS.src&&IMG_ASS.naturalWidth>0;
-  y+=temAss?80:54;
-  if(temAss){
-    const escala=Math.min(62/IMG_ASS.naturalHeight,(W*0.46)/IMG_ASS.naturalWidth);
-    const dw=IMG_ASS.naturalWidth*escala,dh=IMG_ASS.naturalHeight*escala;
-    try{x.drawImage(IMG_ASS,(W-dw)/2,y-dh+8,dw,dh);}catch(e){}
-  }
-  x.fillStyle="#0A2531";x.fillRect(W*.22,y,W*.56,1);y+=24;
+  y+=54;x.fillStyle="#0A2531";x.fillRect(W*.22,y,W*.56,1);y+=24;
   x.textAlign="center";F(16);x.fillText((cfg.resp||"Acqua Viana")+(cfg.doc?" · "+cfg.doc:""),W/2,y);y+=30;
   F(14);x.fillStyle="#5D7C8B";
   [[cfg.cidade,dataBR(r.data)].filter(Boolean).join(", "),
@@ -3363,7 +3317,7 @@ async function fontesProntas(){
   }catch(e){}
 }
 async function papelCanvas(r){
-  await logoPronta();await fontesProntas();await imgPronta(IMG_ASS);
+  await logoPronta();await fontesProntas();
   const W=860,LIM=3600;
   const m=document.createElement("canvas");m.width=W;m.height=8;
   const alt=desenhaDoc(m.getContext("2d"),r,W);
@@ -3393,16 +3347,6 @@ async function imagemPDF(cv){
     return{bin:bin2str(buf),filtro:"/FlateDecode"};
   }
   throw new Error("sem-imagem");
-}
-function linkPix(valor){
-  const chave=chavePixNorm();
-  if(!chave)return null;
-  if(location.protocol.indexOf("http")!==0)return null;
-  const q="v="+(valor>0?valor.toFixed(2):"")
-    +"&k="+encodeURIComponent(chave)
-    +"&n="+encodeURIComponent(limpaTxt(DB.config.resp||"ACQUA VIANA",25))
-    +"&d="+encodeURIComponent(limpaTxt(DB.config.cidade||"BRASIL",15));
-  try{return new URL("pix.html",location.href).href+"?"+q;}catch(e){return null;}
 }
 function escPdf(s){return String(s).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)");}
 async function pdfDeCanvas(cv,pixTxt){
@@ -3528,18 +3472,13 @@ $("#btn-emitir-mens").onclick=async()=>{
 
 /* ---------- ajustes e backup ---------- */
 function pintaConfig(){
-  pintaDiag();pintaAssinatura();
-  if(DB.config.assinatura&&!IMG_ASS.src)IMG_ASS.src=DB.config.assinatura;
+  pintaDiag();
   const c=DB.config;
   $("#c-resp").value=c.resp||"";$("#c-doc").value=mascDoc(c.doc);$("#c-tel").value=mascTel(c.tel);
   $("#c-cidade").value=c.cidade||"";$("#c-pix").value=c.pix||"";$("#c-num").value=c.proximo||1;$("#c-numorc").value=c.proximoOrc||1;
   $("#c-pixtipo").value=c.pixTipo||adivinhaPix(c.pix||"");
 }
 $("#btn-salvar-config").onclick=async()=>{
-  const tp=$("#c-pixtipo").value,ch=soNum($("#c-pix").value);
-  if(tp==="cnpj"&&ch&&!validaCNPJ(ch)){toast("Chave PIX barrada: CNPJ com dígito verificador errado. Confira número por número.");return;}
-  if(tp==="cpf"&&ch&&!validaCPF(ch)){toast("Chave PIX barrada: CPF com dígito verificador errado. Confira número por número.");return;}
-  const av=avisoDoc($("#c-doc").value,"CPF/CNPJ da empresa");if(av)toast(av);
   Object.assign(DB.config,{resp:$("#c-resp").value.trim(),doc:mascDoc($("#c-doc").value),tel:mascTel($("#c-tel").value),
     cidade:$("#c-cidade").value.trim(),pix:$("#c-pix").value.trim(),proximo:Math.max(1,parseInt($("#c-num").value)||1),
     proximoOrc:Math.max(1,parseInt($("#c-numorc").value)||1),pixTipo:$("#c-pixtipo").value});
@@ -3582,61 +3521,6 @@ if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 }
 
-/* ---------- assinatura de punho ---------- */
-const IMG_ASS=new Image();
-function imgPronta(im){return new Promise(res=>{
-  if(!im.src||(im.complete&&im.naturalWidth>=0))return res();
-  im.onload=im.onerror=()=>res();setTimeout(res,1500);});}
-let padCtx=null,padFez=false,padL=0;
-window.abreAssinatura=function(){
-  abre("#fo-ass");
-  setTimeout(()=>{
-    const cv=$("#pad");padL=$("#pad-caixa").clientWidth;
-    cv.width=padL*2;cv.height=460;cv.style.width=padL+"px";cv.style.height="230px";
-    padCtx=cv.getContext("2d");padCtx.scale(2,2);
-    padCtx.lineWidth=3.2;padCtx.lineCap="round";padCtx.lineJoin="round";padCtx.strokeStyle="#16233a";
-    padFez=false;let tr=false,lx=0,ly=0;
-    const pos=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top];};
-    cv.onpointerdown=e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(err){}
-      tr=true;[lx,ly]=pos(e);
-      padCtx.beginPath();padCtx.moveTo(lx,ly);padCtx.lineTo(lx+0.1,ly+0.1);padCtx.stroke();padFez=true;};
-    cv.onpointermove=e=>{if(!tr)return;e.preventDefault();const[nx,ny]=pos(e);
-      padCtx.beginPath();padCtx.moveTo(lx,ly);padCtx.lineTo(nx,ny);padCtx.stroke();lx=nx;ly=ny;};
-    cv.onpointerup=cv.onpointercancel=()=>{tr=false;};
-  },80);
-};
-$("#btn-ass-abrir").onclick=()=>abreAssinatura();
-$("#btn-ass-limpar").onclick=()=>{if(padCtx){padCtx.clearRect(0,0,padL,230);padFez=false;}};
-$("#btn-ass-salvar").onclick=async()=>{
-  if(!padFez){toast("Desenhe a assinatura antes de salvar.");return;}
-  const cv=$("#pad"),c2=cv.getContext("2d"),img=c2.getImageData(0,0,cv.width,cv.height),d=img.data;
-  let mx=cv.width,my=cv.height,Mx=0,My=0;
-  for(let yy=0;yy<cv.height;yy++)for(let xx=0;xx<cv.width;xx++){
-    if(d[(yy*cv.width+xx)*4+3]>12){if(xx<mx)mx=xx;if(xx>Mx)Mx=xx;if(yy<my)my=yy;if(yy>My)My=yy;}}
-  if(Mx<=mx||My<=my){toast("Desenhe a assinatura antes de salvar.");return;}
-  const pd=14,w=Mx-mx+pd*2,ht=My-my+pd*2;
-  const out=document.createElement("canvas");out.width=w;out.height=ht;
-  out.getContext("2d").drawImage(cv,mx-pd,my-pd,w,ht,0,0,w,ht);
-  DB.config.assinatura=out.toDataURL("image/png");
-  IMG_ASS.src=DB.config.assinatura;
-  await salvar();fecha("#fo-ass");pintaAssinatura();toast("Assinatura salva. Ela sai nos próximos documentos.");
-};
-$("#btn-ass-remover").onclick=async()=>{
-  if(!confirm("Remover a assinatura desenhada? Os documentos voltam a sair só com o nome."))return;
-  delete DB.config.assinatura;IMG_ASS.removeAttribute("src");
-  await salvar();pintaAssinatura();toast("Assinatura removida.");
-};
-function pintaAssinatura(){
-  const e=$("#prev-ass");if(!e)return;
-  if(DB.config.assinatura){
-    e.innerHTML='<img src="'+DB.config.assinatura+'" alt="assinatura" style="max-height:46px;max-width:70%;display:block">';
-    $("#btn-ass-remover").style.display="";$("#btn-ass-abrir").textContent="Desenhar de novo";
-  }else{
-    e.textContent="Nenhuma — os documentos saem só com o nome digitado.";
-    $("#btn-ass-remover").style.display="none";$("#btn-ass-abrir").textContent="Desenhar assinatura";
-  }
-}
-
 /* ---------- primeiro uso, alertas e diagnóstico ---------- */
 const DIA=864e5;
 function diasDe(iso){return Math.max(0,Math.round((new Date(hoje()+"T12:00:00")-new Date(iso+"T12:00:00"))/DIA));}
@@ -3672,9 +3556,6 @@ $("#btn-salvar-precos").onclick=async()=>{
 $("#btn-comecar").onclick=async()=>{
   const r=$("#in-resp").value.trim();
   if(!r){toast("Escreva o nome de quem assina.");return;}
-  const chv=$("#in-pix").value.trim(),dch=soNum(chv);
-  if(dch.length===14&&!validaCNPJ(dch)){toast("A chave PIX parece um CNPJ digitado errado. Confira antes de continuar.");return;}
-  if(dch.length===11&&!validaCPF(dch)&&adivinhaPix(chv)==="cpf"){toast("A chave PIX parece um CPF digitado errado. Confira antes de continuar.");return;}
   Object.assign(DB.config,{resp:r,tel:mascTel($("#in-tel").value),cidade:$("#in-cidade").value.trim(),pix:$("#in-pix").value.trim()});
   await salvar();document.querySelector(".nav").style.display="";pintaConfig();ir("v-itens");toast("Pronto. Agora defina seus preços.");
 };
@@ -3727,7 +3608,6 @@ function pintaModo(){
   if(MODO==="memoria"){
     $("#aviso-armazenamento").innerHTML=`<div class="aviso">Este navegador não deixa guardar dados, então nada fica salvo ao fechar. Abra o app pelo endereço da internet ou use <b>Ajustes → Baixar backup</b> antes de sair.</div>`;
   }
-  if(DB.config.assinatura)IMG_ASS.src=DB.config.assinatura;
   novoRascunho();pintaClientes();pintaItens();pintaHistorico();pintaConfig();atualizaMensalidadesResumo();
   pintaAlertas();pintaModo();
   if(!DB.config.resp){document.querySelector(".nav").style.display="none";ir("v-inicio");}
